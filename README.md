@@ -1,4 +1,4 @@
-# ZexAuct - A distributed full-stack real-time auction application
+# NexAuct - A distributed full-stack real-time auction application
 
 Check out live demo with this link: [app.zehu.tech](https://app.zehu.tech)
 
