@@ -1,22 +1,27 @@
-using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.Authorization;
 
-namespace IdentityService.Pages.Redirect;
+namespace IdentityService.Pages.Diagnostics;
 
-[AllowAnonymous]
-public class IndexModel : PageModel
+[SecurityHeaders]
+[Authorize]
+public class Index : PageModel
 {
-    public string RedirectUri { get; set; }
-
-    public IActionResult OnGet(string redirectUri)
+    public ViewModel View { get; set; }
+        
+    public async Task<IActionResult> OnGet()
     {
-        if (!Url.IsLocalUrl(redirectUri))
+        var localAddresses = new string[]
+            { "::ffff:172.18.0.1", " 127.0.0.1", "::1", HttpContext.Connection.LocalIpAddress.ToString() };
+        if (!localAddresses.Contains(HttpContext.Connection.RemoteIpAddress.ToString()))
         {
-            return RedirectToPage("/Home/Error/Index");
+            return NotFound();
         }
 
-        RedirectUri = redirectUri;
+        View = new ViewModel(await HttpContext.AuthenticateAsync());
+            
         return Page();
     }
 }
