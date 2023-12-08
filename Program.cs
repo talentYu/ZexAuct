@@ -1,40 +1,29 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+using MassTransit;
+using NotificationService.Consumers;
+using NotificationService.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddReverseProxy()
-    .LoadFromConfig(builder.Configuration.GetSection("ReverseProxy"));
-
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(o =>
-    {
-        o.Authority = builder.Configuration["IdentityServiceUrl"];
-        o.RequireHttpsMetadata = false;
-        o.TokenValidationParameters.ValidateIssuer = false;
-        o.TokenValidationParameters.ValidateAudience = false;
-        o.TokenValidationParameters.NameClaimType = "username";
-    });
-
-builder.Services.AddCors(options =>
+builder.Services.AddMassTransit(x =>
 {
-    options.AddPolicy("customPolicy",
-        b =>
+    x.AddConsumersFromNamespaceContaining<AuctionCreatedConsumer>();
+    x.SetEndpointNameFormatter(new KebabCaseEndpointNameFormatter("nt", false));
+    x.UsingRabbitMq((context, cfg) =>
+    {
+        cfg.UseMessageRetry(r =>
         {
-            b
-                .WithOrigins(builder.Configuration["ClientApp"])
-                .AllowAnyHeader()
-                .AllowCredentials()
-                .AllowAnyMethod();
-
+            r.Handle<RabbitMqConnectionException>();
+            r.Interval(5, TimeSpan.FromSeconds(10));
         });
+        cfg.Host(builder.Configuration["RabbitMq:host"], "/", host =>
+        {
+            host.Username(builder.Configuration.GetValue("RabbitMq:Username", "guest"));
+            host.Password(builder.Configuration.GetValue("RabbitMq:Password", "guest"));
+        });
+        cfg.ConfigureEndpoints(context);
+    });
 });
-
+builder.Services.AddSignalR();
 var app = builder.Build();
-
-app.UseCors("customPolicy");
-app.MapReverseProxy();
-
-app.UseAuthentication();
-app.UseAuthorization();
-
+app.MapHub<NotificationHub>("/notifications");
 app.Run();
