@@ -14,17 +14,17 @@ COPY src/BiddingService/BiddingService.csproj src/BiddingService/BiddingService.
 COPY src/NotificationService/NotificationService.csproj src/NotificationService/NotificationService.csproj
 COPY tests/AuctionService.UnitTests/AuctionService.UnitTests.csproj tests/AuctionService.UnitTests/AuctionService.UnitTests.csproj
 COPY tests/AuctionService.IntegrationTests/AuctionService.IntegrationTests.csproj tests/AuctionService.IntegrationTests/AuctionService.IntegrationTests.csproj
+
 # Restore package deps
 RUN dotnet restore nex-auct.sln
 
 # Copy the app folders over
-COPY src/NotificationService src/NotificationService
-COPY src/Contracts src/Contracts
-WORKDIR /app/src/NotificationService
+COPY src/GatewayService src/GatewayService
+WORKDIR /app/src/GatewayService
 RUN dotnet publish -c Release -o /app/src/out
 
 # Build runtime image
 FROM mcr.microsoft.com/dotnet/aspnet:7.0
 WORKDIR /app
 COPY --from=build /app/src/out .
-ENTRYPOINT [ "dotnet", "NotificationService.dll" ]
+ENTRYPOINT [ "dotnet", "GatewayService.dll" ]
