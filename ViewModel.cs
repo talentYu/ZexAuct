@@ -1,30 +1,22 @@
-// Copyright (c) Duende Software. All rights reserved.
-// See LICENSE in the project root for license information.
-
-
-using IdentityModel;
-using Microsoft.AspNetCore.Authentication;
-using System.Text;
-using System.Text.Json;
-
-namespace IdentityService.Pages.Diagnostics;
+namespace IdentityService.Pages.Device;
 
 public class ViewModel
 {
-    public ViewModel(AuthenticateResult result)
-    {
-        AuthenticateResult = result;
+    public string ClientName { get; set; }
+    public string ClientUrl { get; set; }
+    public string ClientLogoUrl { get; set; }
+    public bool AllowRememberConsent { get; set; }
 
-        if (result.Properties.Items.ContainsKey("client_list"))
-        {
-            var encoded = result.Properties.Items["client_list"];
-            var bytes = Base64Url.Decode(encoded);
-            var value = Encoding.UTF8.GetString(bytes);
+    public IEnumerable<ScopeViewModel> IdentityScopes { get; set; }
+    public IEnumerable<ScopeViewModel> ApiScopes { get; set; }
+}
 
-            Clients = JsonSerializer.Deserialize<string[]>(value);
-        }
-    }
-
-    public AuthenticateResult AuthenticateResult { get; }
-    public IEnumerable<string> Clients { get; } = new List<string>();
+public class ScopeViewModel
+{
+    public string Value { get; set; }
+    public string DisplayName { get; set; }
+    public string Description { get; set; }
+    public bool Emphasize { get; set; }
+    public bool Required { get; set; }
+    public bool Checked { get; set; }
 }
