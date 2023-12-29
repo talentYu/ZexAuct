@@ -1,17 +1,61 @@
 @page
-@model IdentityService.Pages.Logout.Index
+@model IdentityService.Pages.Diagnostics.Index
 
-<div class="logout-page">
+<div class="diagnostics-page">
     <div class="lead">
-        <h1>Logout</h1>
-        <p>Would you like to logout of IdentityServer?</p>
+        <h1>Authentication Cookie</h1>
     </div>
 
-    <form asp-page="/Account/Logout/Index">
-        <input type="hidden" name="logoutId" value="@Model.LogoutId"  />
-        
-        <div class="form-group">
-            <button class="btn btn-primary">Yes</button>
+    <div class="row">
+        <div class="col">
+            <div class="card">
+                <div class="card-header">
+                    <h2>Claims</h2>
+                </div>
+                <div class="card-body">
+                    <dl>
+                        @foreach (var claim in Model.View.AuthenticateResult.Principal.Claims)
+                        {
+                            <dt>@claim.Type</dt>
+                            <dd>@claim.Value</dd>
+                        }
+                    </dl>
+                </div>
+            </div>
         </div>
-    </form>
+        
+        <div class="col">
+            <div class="card">
+                <div class="card-header">
+                    <h2>Properties</h2>
+                </div>
+                <div class="card-body">
+                    <dl>
+                        @foreach (var prop in Model.View.AuthenticateResult.Properties.Items)
+                        {
+                            <dt>@prop.Key</dt>
+                            <dd>@prop.Value</dd>
+                        }
+                        @if (Model.View.Clients.Any())
+                        {
+                            <dt>Clients</dt>
+                            <dd>
+                                @{
+                                    var clients = Model.View.Clients.ToArray();
+                                    for(var i = 0; i < clients.Length; i++)
+                                    {
+                                        <text>@clients[i]</text>
+                                        if (i < clients.Length - 1)
+                                        {
+                                            <text>, </text>
+                                        }
+                                    }
+                                }
+                            </dd>
+                        }
+                    </dl>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
